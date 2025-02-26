@@ -7,52 +7,67 @@ from llama_index.core.memory import ChatMemoryBuffer
 from llama_index.core.chat_engine import CondensePlusContextChatEngine
 import os
 import glob
+import time
 
-# print("Key Loaded: ", os.environ.get("GROQ_API_KEY"))
 
-llm = Groq(model="llama3-70b-8192",api_key="")
-embed_model = HuggingFaceEmbedding(model_name="mixedbread-ai/mxbai-embed-large-v1")  #"sentence-transformers/all-MiniLM-L6-v2"
+def answer(engine, query):
+    
+    return engine.query(query)
+
+def chat(engine, query):
+    
+    return engine.chat(query)
+
+
+start_time = time.time()    
+
+# api_key = os.environ.get("GROQ_API_KEY")
+api_key = ""
+
+llm = Groq(model="llama3-70b-8192",api_key=api_key)
+
+# "mixedbread-ai/mxbai-embed-large-v1" - 300 seconds
+# "sentence-transformers/all-MiniLM-L6-v2" - 5 seconds
+embed_model = HuggingFaceEmbedding(model_name="sentence-transformers/all-MiniLM-L6-v2") 
 Settings.llm = llm
 Settings.embed_model = embed_model
-
-print("Model Loaded")
+print("Groq Model Loaded", f"{time.time() - start_time}", " Seconds\n")
+start_time = time.time()
 
 
 documents = SimpleDirectoryReader(input_files=glob.glob("C:/Users/SaratKarasala/Documents/Projects/LLM/BookGPT/data/harry_potter/Harry Potter 1 - Sorcerer's Stone.txt")).load_data()
-
-print("Reader Initialized")
+print("Reader Initialized", f"{time.time() - start_time}", " Seconds\n")
+start_time = time.time()
 
 index = VectorStoreIndex.from_documents(documents)
-print("vector store index - done")
-query_engine = index.as_query_engine(similarity_top_k=3)
-print("query engine - done")
+print("Vector Store Index", f"{time.time() - start_time}", " Seconds\n")
+start_time = time.time()
 
-memory = ChatMemoryBuffer.from_defaults(token_limit=3900)
+query_engine = index.as_query_engine(similarity_top_k=3)
+
+memory = ChatMemoryBuffer.from_defaults(token_limit=5000)
 chat_engine = CondensePlusContextChatEngine.from_defaults(
    index.as_retriever(),
    memory=memory,
    llm=llm
 )
 
-
-print("chat engine created")
-
-
-response = query_engine.query("What is the book about?")
+print("Testing the RAG system\n")
+print("Can you give me a brief summary of the book?\n")
+response = answer(query_engine, "Can you give me a brief summary of the book?")
 print(response)
 
 
-response = query_engine.query("Can you give me a brief summary of the book?")
+print("Chat Engine Answers\n")
+
+print("Can you give me a brief summary of the book?\n")
+response = chat(chat_engine, "Can you give me a brief summary of the book?")
 print(response)
 
-
-response = chat_engine.chat(
-   "Can you tell me a little about the antagonist of the book?"
-)
+print("Can you tell me a little about the antagonist of the book?\n")
+response = chat(chat_engine, "Can you tell me a little about the antagonist of the book?")
 print(str(response))
 
-response = chat_engine.chat(
-    "Who is the main protagonist?"
-)
+print("Who is the main protagonist of the story and what does he or she do?\n")
+response = chat(chat_engine, "Who is the main protagonist?")
 print(str(response))
-
