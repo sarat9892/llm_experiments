@@ -16,12 +16,22 @@ def query(engine, query):
 def chat(engine, query):
     return engine.chat(query)
 
+def key(api, file_path):
+    key_dict = {}
+    with open(file_path) as file:
+        for line in file:
+            key_dict[line.split("=")[0]] = line.split("=")[1]
+
+    return key_dict[api].strip()
+
 def init_llm(llm_model_name, api_key, embedding_model_name):
     llm = Groq(model=llm_model_name, api_key=api_key)
     embed_model = HuggingFaceEmbedding(model_name=embedding_model_name) 
     
     Settings.llm = llm
     Settings.embed_model = embed_model
+
+    return llm
 
 
 if __name__ == "__main__":
@@ -33,16 +43,19 @@ if __name__ == "__main__":
     # "sentence-transformers/all-mpnet-base-v2" - 80 seconds
 
     # api_key = os.environ.get("GROQ_API_KEY")
-    api_key = ""
+    key_path = r"C:\Users\SaratKarasala\Documents\Projects\Groq\Keys\key.txt"
+    api_key = key("groq", key_path)
 
-    start_time = time.time()    
+    start_time = time.time()  
+
+    llm = init_llm(llm_model_name=llm_model_name, api_key=api_key, embedding_model_name=embedding_model_name)  
 
     print("Model Load Time", f"{time.time() - start_time}", "Seconds\n")
     start_time = time.time()
 
     documents = SimpleDirectoryReader(input_files=glob.glob("C:/Users/SaratKarasala/Documents/Projects/LLM/BookGPT/data/harry_potter/Harry Potter 1 - Sorcerer's Stone.txt")).load_data()
-
     index = VectorStoreIndex.from_documents(documents)
+
     print("Vector Store Indexing Time", f"{time.time() - start_time}", "Seconds\n")
     start_time = time.time()
 
