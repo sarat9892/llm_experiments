@@ -33,7 +33,7 @@ if __name__ == "__main__":
     # "sentence-transformers/all-mpnet-base-v2" - 80 seconds
 
     # api_key = os.environ.get("GROQ_API_KEY")
-    api_key = "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"
+    api_key = ""
 
     start_time = time.time()    
 
